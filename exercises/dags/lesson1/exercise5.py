@@ -26,7 +26,7 @@ def log_details(*args, **kwargs):
         logging.info(f"My next run will be {next_ds}")
 
 dag = DAG(
-    'exercise5',
+    'lesson1.exercise5',
     schedule_interval="@daily",
     start_date=datetime.datetime.now() - datetime.timedelta(days=2)
 )

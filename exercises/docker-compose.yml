@@ -13,7 +13,7 @@ services:
             - POSTGRES_PASSWORD=airflow
             - POSTGRES_DB=airflow
             #- PGDATA=/var/lib/postgresql/data/pgdata
-        #volumes:
+            #volumes:
             #- ./pgdata:/var/lib/postgresql/data/pgdata
 
     webserver:
