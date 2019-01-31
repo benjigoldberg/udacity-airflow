@@ -14,7 +14,13 @@ def load_trip_data_to_redshift(*args, **kwargs):
     aws_hook = AwsHook("aws_credentials")
     credentials = aws_hook.get_credentials()
     redshift_hook = PostgresHook("redshift")
-    execution_date = kwargs["execution_date"]
+
+    # # #
+    # TODO: How do we get the execution_date from our context?
+    # execution_date=kwargs["<REPLACE>"]
+    execution_date = datetime.datetime.utcnow()
+    # # #
+
     sql_stmt = sql.COPY_MONTHLY_TRIPS_SQL.format(
         credentials.access_key,
         credentials.secret_key,
@@ -54,7 +60,8 @@ copy_trips_task = PythonOperator(
     task_id='load_trips_from_s3_to_redshift',
     dag=dag,
     python_callable=load_trip_data_to_redshift,
-    provide_context=True,
+    # TODO: ensure that we provide context to our Python Operator
+    # provide_context=< True or False? >
 )
 
 create_stations_table = PostgresOperator(

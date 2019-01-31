@@ -14,12 +14,9 @@ def load_trip_data_to_redshift(*args, **kwargs):
     aws_hook = AwsHook("aws_credentials")
     credentials = aws_hook.get_credentials()
     redshift_hook = PostgresHook("redshift")
-    execution_date = kwargs["execution_date"]
-    sql_stmt = sql.COPY_MONTHLY_TRIPS_SQL.format(
+    sql_stmt = sql.COPY_ALL_TRIPS_SQL.format(
         credentials.access_key,
         credentials.secret_key,
-        year=execution_date.year,
-        month=execution_date.month
     )
     redshift_hook.run(sql_stmt)
 
@@ -36,11 +33,14 @@ def load_station_data_to_redshift(*args, **kwargs):
 
 
 dag = DAG(
-    'lesson2.exercise3',
+    'lesson2.exercise2',
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
-    end_date=datetime.datetime(2019, 1, 1, 0, 0, 0, 0),
-    schedule_interval='@monthly',
-    max_active_runs=1
+    # TODO: Set the end date to February first
+    #end_date=<REPLACE>,
+    # TODO: Set the schedule to be monthly
+    #schedule_interval='<REPLACE>',
+    # TODO: set the number of max active runs to 1
+    #max_active_runs=<REPLACE>
 )
 
 create_trips_table = PostgresOperator(

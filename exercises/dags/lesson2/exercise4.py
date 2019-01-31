@@ -35,8 +35,26 @@ def load_station_data_to_redshift(*args, **kwargs):
     redshift_hook.run(sql_stmt)
 
 
+def check_greater_than_zero(*args, **kwargs):
+    table = kwargs["params"]["table"]
+    redshift_hook = PostgresHook("redshift")
+    records = redshift_hook.get_records(f"SELECT COUNT(*) FROM {table}")
+    if len(records) < 1 or len(records[0]) < 1:
+        raise ValueError(f"Data quality check failed. {table} returned no results")
+    num_records = records[0][0]
+
+    #
+    # TODO: Add a check here to verify that at least one record was found
+    #       Raise an error if less than one record is found
+    #
+    # if <REPLACE>:
+    #     raise <REPLACE>
+
+    logging.info(f"Data quality on table {table} check passed with {records[0][0]} records")
+
+
 dag = DAG(
-    'lesson2.exercise3',
+    'lesson2.exercise4',
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
     end_date=datetime.datetime(2019, 1, 1, 0, 0, 0, 0),
     schedule_interval='@monthly',
@@ -57,6 +75,16 @@ copy_trips_task = PythonOperator(
     provide_context=True,
 )
 
+check_trips = PythonOperator(
+    task_id='check_trips_data',
+    dag=dag,
+    python_callable=check_greater_than_zero,
+    provide_context=True,
+    params={
+        'table': 'trips',
+    }
+)
+
 create_stations_table = PostgresOperator(
     task_id="create_stations_table",
     dag=dag,
@@ -70,5 +98,21 @@ copy_stations_task = PythonOperator(
     python_callable=load_station_data_to_redshift,
 )
 
+check_stations = PythonOperator(
+    task_id='check_stations_data',
+    dag=dag,
+    python_callable=check_greater_than_zero,
+    provide_context=True,
+    params={
+        'table': 'stations',
+    }
+)
+
 create_trips_table >> copy_trips_task
 create_stations_table >> copy_stations_task
+
+#
+# TODO: Set the task dependencies for the stations and trips check tasks
+#
+
+
