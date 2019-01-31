@@ -54,6 +54,7 @@ COPY_STATIONS_SQL = COPY_SQL.format(
 )
 
 LOCATION_TRAFFIC_SQL = """
+BEGIN;
 DROP TABLE IF EXISTS station_traffic;
 CREATE TABLE station_traffic AS
 SELECT

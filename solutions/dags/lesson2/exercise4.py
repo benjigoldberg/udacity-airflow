@@ -14,9 +14,11 @@ def load_trip_data_to_redshift(*args, **kwargs):
     aws_hook = AwsHook("aws_credentials")
     credentials = aws_hook.get_credentials()
     redshift_hook = PostgresHook("redshift")
-    sql_stmt = sql.COPY_ALL_TRIPS_SQL.format(
+    sql_stmt = sql.COPY_MONTHLY_TRIPS_SQL.format(
         credentials.access_key,
         credentials.secret_key,
+        year=kwargs["execution_date"].year,
+        month=kwargs["execution_date"].month
     )
     redshift_hook.run(sql_stmt)
 
@@ -32,10 +34,19 @@ def load_station_data_to_redshift(*args, **kwargs):
     redshift_hook.run(sql_stmt)
 
 
+def check_greater_than_zero(*args, **kwargs):
+    table = kwargs["params"]["table"]
+    redshift_hook = PostgresHook("redshift")
+    records = redshift_hook.get_records(f"SELECT COUNT(*) FROM {table}")
+    if len(records) < 1 or records[0] < 1:
+        raise ValueError(f"Data quality check failed. {table} contained 0 rows")
+    logging.info(f"Data quality on table {table} check passed")
+
+
 dag = DAG(
-    'lesson2.exercise2',
+    'lesson2.exercise4',
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
-    end_date=datetime.datetime(2018, 2, 1, 0, 0, 0, 0),
+    end_date=datetime.datetime(2019, 1, 1, 0, 0, 0, 0),
     schedule_interval='@monthly',
     concurrency=1
 )
@@ -54,6 +65,15 @@ copy_trips_task = PythonOperator(
     provide_context=True,
 )
 
+check_trips = PythonOperator(
+    task_id='check_trips_data',
+    dag=dag,
+    python_callable=check_greater_than_zero,
+    params={
+        'table': 'trips',
+    }
+)
+
 create_stations_table = PostgresOperator(
     task_id="create_stations_table",
     dag=dag,
@@ -67,13 +87,26 @@ copy_stations_task = PythonOperator(
     python_callable=load_station_data_to_redshift,
 )
 
+check_stations = PythonOperator(
+    task_id='check_stations_data',
+    dag=dag,
+    python_callable=check_greater_than_zero,
+    params={
+        'table': 'stations',
+    }
+)
+
 location_traffic_task = PostgresOperator(
     task_id="calculate_location_traffic",
     dag=dag,
     postgres_conn_id="redshift",
     sql=sql.LOCATION_TRAFFIC_SQL,
+    task_concurrency=1,
+    sla=datetime.timedelta(hours=1)
 )
 
 create_trips_table >> copy_trips_task
 create_stations_table >> copy_stations_task
-copy_trips_task >> location_traffic_task
+copy_stations_task >> check_stations
+copy_trips_task >> check_stations
+check_stations >> location_traffic_task
