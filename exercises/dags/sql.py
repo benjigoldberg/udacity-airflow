@@ -1,6 +1,5 @@
-CREATE_TABLE_SQL = """
-DROP TABLE IF EXISTS trips;
-CREATE TABLE trips (
+CREATE_TRIPS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS trips (
 trip_id INTEGER NOT NULL,
 start_time TIMESTAMP NOT NULL,
 end_time TIMESTAMP NOT NULL,
@@ -17,16 +16,45 @@ PRIMARY KEY(trip_id))
 DISTSTYLE ALL;
 """
 
+CREATE_STATIONS_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS stations (
+id INTEGER NOT NULL,
+name VARCHAR(250) NOT NULL,
+city VARCHAR(100) NOT NULL,
+latitude DECIMAL(9, 6) NOT NULL,
+longitude DECIMAL(9, 6) NOT NULL,
+dpcapacity INTEGER NOT NULL,
+online_date TIMESTAMP NOT NULL,
+PRIMARY KEY(id))
+DISTSTYLE ALL;
+"""
+
 COPY_SQL = """
-COPY trips
-FROM 's3://udac-data-pipelines/divvy/unpartitioned/divvy_2018.csv'
-ACCESS_KEY_ID '{}'
-SECRET_ACCESS_KEY '{}'
+COPY {}
+FROM '{}'
+ACCESS_KEY_ID '{{}}'
+SECRET_ACCESS_KEY '{{}}'
 IGNOREHEADER 1
 DELIMITER ','
 """
 
+COPY_MONTHLY_TRIPS_SQL = COPY_SQL.format(
+    "trips",
+    "s3://udac-data-pipelines/divvy/partitioned/{year}/{month}/divvy_trips.csv"
+)
+
+COPY_ALL_TRIPS_SQL = COPY_SQL.format(
+    "trips",
+    "s3://udac-data-pipelines/divvy/unpartitioned/divvy_trips_2018.csv"
+)
+
+COPY_STATIONS_SQL = COPY_SQL.format(
+    "stations",
+    "s3://udac-data-pipelines/divvy/unpartitioned/divvy_stations_2017.csv"
+)
+
 LOCATION_TRAFFIC_SQL = """
+BEGIN;
 DROP TABLE IF EXISTS station_traffic;
 CREATE TABLE station_traffic AS
 SELECT

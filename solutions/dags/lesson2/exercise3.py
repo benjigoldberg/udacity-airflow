@@ -38,7 +38,8 @@ dag = DAG(
     'lesson2.exercise3',
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
     end_date=datetime.datetime(2019, 1, 1, 0, 0, 0, 0),
-    schedule_interval='@monthly'
+    schedule_interval='@monthly',
+    max_active_runs=1
 )
 
 create_trips_table = PostgresOperator(
@@ -68,14 +69,5 @@ copy_stations_task = PythonOperator(
     python_callable=load_station_data_to_redshift,
 )
 
-location_traffic_task = PostgresOperator(
-    task_id="calculate_location_traffic",
-    dag=dag,
-    postgres_conn_id="redshift",
-    sql=sql.LOCATION_TRAFFIC_SQL,
-    task_concurrency=1
-)
-
 create_trips_table >> copy_trips_task
 create_stations_table >> copy_stations_task
-copy_trips_task >> location_traffic_task

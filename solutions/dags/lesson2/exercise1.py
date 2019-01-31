@@ -63,14 +63,5 @@ copy_stations_task = PythonOperator(
     python_callable=load_station_data_to_redshift,
 )
 
-location_traffic_task = PostgresOperator(
-    task_id="calculate_location_traffic",
-    dag=dag,
-    postgres_conn_id="redshift",
-    sql=sql.LOCATION_TRAFFIC_SQL
-)
-
 create_trips_table >> copy_trips_task
 create_stations_table >> copy_stations_task
-copy_trips_task >> location_traffic_task
-copy_stations_task >> location_traffic_task

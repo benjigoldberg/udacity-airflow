@@ -38,9 +38,12 @@ def check_greater_than_zero(*args, **kwargs):
     table = kwargs["params"]["table"]
     redshift_hook = PostgresHook("redshift")
     records = redshift_hook.get_records(f"SELECT COUNT(*) FROM {table}")
-    if len(records) < 1 or records[0] < 1:
+    if len(records) < 1 or len(records[0]) < 1:
+        raise ValueError(f"Data quality check failed. {table} returned no results")
+    num_records = records[0][0]
+    if num_records < 1:
         raise ValueError(f"Data quality check failed. {table} contained 0 rows")
-    logging.info(f"Data quality on table {table} check passed")
+    logging.info(f"Data quality on table {table} check passed with {records[0][0]} records")
 
 
 dag = DAG(
@@ -48,7 +51,7 @@ dag = DAG(
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
     end_date=datetime.datetime(2019, 1, 1, 0, 0, 0, 0),
     schedule_interval='@monthly',
-    concurrency=1
+    max_active_runs=1
 )
 
 create_trips_table = PostgresOperator(
@@ -69,6 +72,7 @@ check_trips = PythonOperator(
     task_id='check_trips_data',
     dag=dag,
     python_callable=check_greater_than_zero,
+    provide_context=True,
     params={
         'table': 'trips',
     }
@@ -91,22 +95,13 @@ check_stations = PythonOperator(
     task_id='check_stations_data',
     dag=dag,
     python_callable=check_greater_than_zero,
+    provide_context=True,
     params={
         'table': 'stations',
     }
 )
 
-location_traffic_task = PostgresOperator(
-    task_id="calculate_location_traffic",
-    dag=dag,
-    postgres_conn_id="redshift",
-    sql=sql.LOCATION_TRAFFIC_SQL,
-    task_concurrency=1,
-    sla=datetime.timedelta(hours=1)
-)
-
 create_trips_table >> copy_trips_task
 create_stations_table >> copy_stations_task
 copy_stations_task >> check_stations
-copy_trips_task >> check_stations
-check_stations >> location_traffic_task
+copy_trips_task >> check_trips
