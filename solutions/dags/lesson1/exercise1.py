@@ -10,7 +10,7 @@ def hello_world():
 
 
 dag = DAG(
-        'exercise1',
+        'lesson1.exercise1',
         start_date=datetime.datetime.now())
 
 greet_task = PythonOperator(

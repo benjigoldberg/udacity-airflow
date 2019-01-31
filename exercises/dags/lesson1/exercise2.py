@@ -12,7 +12,7 @@ def hello_world():
 # TODO: Add the `schedule_interval` argument to the following DAG
 #
 dag = DAG(
-        "exercise2",
+        "lesson1.exercise2",
         start_date=datetime.datetime.now() - datetime.timedelta(days=1))
 
 task = PythonOperator(

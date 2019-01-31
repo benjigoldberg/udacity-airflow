@@ -10,7 +10,7 @@ def hello_world():
 
 
 dag = DAG(
-        "exercise2",
+        "lesson1.exercise2",
         start_date=datetime.datetime.now() - datetime.timedelta(days=1),
         schedule_interval='@daily')
 
