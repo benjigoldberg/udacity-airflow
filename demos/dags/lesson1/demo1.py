@@ -6,14 +6,11 @@ from airflow.operators.python_operator import PythonOperator
 
 
 #
-# TODO: Define a function for the PythonOperator to call and have it log something
+# TODO: Define a function for the PythonOperator to call
 #
-# def my_function():
-#     logging.info(<REPLACE>)
-
 
 dag = DAG(
-        'lesson1.exercise1',
+        'lesson1.demo1',
         start_date=datetime.datetime.now())
 
 #

@@ -14,12 +14,12 @@ def load_data_to_redshift(*args, **kwargs):
     aws_hook = AwsHook("aws_credentials")
     credentials = aws_hook.get_credentials()
     redshift_hook = PostgresHook("redshift")
-    sql_stmt = sql.COPY_ALL_TRIPS_SQL.format(credentials.access_key, credentials.secret_key)
+    sql_stmt = sql.COPY_STATIONS_SQL.format(credentials.access_key, credentials.secret_key)
     redshift_hook.run(sql_stmt)
 
 
 dag = DAG(
-    'lesson1.exercise6',
+    'lesson1.demo6',
     start_date=datetime.datetime.now()
 )
 
@@ -28,7 +28,7 @@ dag = DAG(
 # TODO: What connection should be used?
 #create_table = PostgresOperator(
 #    postgres_conn_id='<REPLACE>',
-#    sql=sql.CREATE_TRIPS_TABLE_SQL
+#    sql=sql.CREATE_STATIONS_TABLE_SQL
 #)
 
 # TODO: Give this operator a task ID
@@ -36,13 +36,6 @@ dag = DAG(
 # TODO: Populate the Python Callable Below
 #copy_task = PythonOperator()
 
-# TODO: Give this operator a task ID
-# TODO: Assign this operator to the DAG
-# TODO: What connection should be used?
-#location_traffic_task = PostgresOperator(
-#    postgres_conn_id=<REPLACE>,
-#    sql=sql.LOCATION_TRAFFIC_SQL
-#)
 
 # TODO: Define task proper task ordering
 # create_table >> <REPLACE>

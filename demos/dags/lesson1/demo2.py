@@ -9,11 +9,11 @@ def hello_world():
     logging.info("Hello World")
 
 #
-# TODO: Add a daily `schedule_interval` argument to the following DAG
+# TODO: Add a monthly `schedule_interval` argument to the following DAG
 #
 dag = DAG(
-        "lesson1.exercise2",
-        start_date=datetime.datetime.now() - datetime.timedelta(days=1))
+        "lesson1.demo2",
+        start_date=datetime.datetime.now() - datetime.timedelta(days=30))
 
 task = PythonOperator(
         task_id="hello_world_task",
