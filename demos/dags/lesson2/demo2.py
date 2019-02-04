@@ -33,11 +33,11 @@ def load_station_data_to_redshift(*args, **kwargs):
 
 
 dag = DAG(
-    'lesson2.exercise2',
+    'lesson2.demo2',
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
-    # TODO: Set the end date to February first
+    # TODO: Set the end date to December first
     #end_date=<REPLACE>,
-    # TODO: Set the schedule to be monthly
+    # TODO: Set a schedule interval
     #schedule_interval='<REPLACE>',
     # TODO: set the number of max active runs to 1
     #max_active_runs=<REPLACE>
