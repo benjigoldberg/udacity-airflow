@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from airflow import DAG
 from airflow.hooks.postgres_hook import PostgresHook
@@ -7,6 +8,9 @@ from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 
 
+#
+# TODO: What are the dependencies here? How could we split this up into subtasks?
+#
 def load_and_analyze(*args, **kwargs):
     redshift_hook = PostgresHook("redshift")
 
@@ -15,10 +19,15 @@ def load_and_analyze(*args, **kwargs):
         BEGIN;
         DROP TABLE IF EXISTS older_riders;
         CREATE TABLE older_riders AS (
-            SELECT * FROM trips WHERE birthyear <= 1945
+            SELECT * FROM trips WHERE birthyear > 0 AND birthyear <= 1945
         );
         COMMIT;
     """)
+    records = redshift_hook.get_records("""
+        SELECT birthyear FROM older_riders ORDER BY birthyear ASC LIMIT 1
+    """)
+    if len(records) > 0 and len(records[0]) > 0:
+        logging.info(f"Oldest rider was born in {records[0][0]}")
 
     # Find all trips where the rider was under 18
     redshift_hook.run("""
@@ -29,6 +38,12 @@ def load_and_analyze(*args, **kwargs):
         );
         COMMIT;
     """)
+    records = redshift_hook.get_records("""
+        SELECT birthyear FROM younger_riders ORDER BY birthyear DESC LIMIT 1
+    """)
+    if len(records) > 0 and len(records[0]) > 0:
+        logging.info(f"Youngest rider was born in {records[0][0]}")
+
 
     # Find out how often each bike is ridden
     redshift_hook.run("""

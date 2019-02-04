@@ -1,4 +1,5 @@
 import datetime
+import logging
 
 from airflow import DAG
 from airflow.hooks.postgres_hook import PostgresHook
@@ -7,31 +8,72 @@ from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.python_operator import PythonOperator
 
 
-def load_and_analyze(*args, **kwargs):
+def log_oldest():
     redshift_hook = PostgresHook("redshift")
+    records = redshift_hook.get_records("""
+        SELECT birthyear FROM older_riders ORDER BY birthyear ASC LIMIT 1
+    """)
+    if len(records) > 0 and len(records[0]) > 0:
+        logging.info(f"Oldest rider was born in {records[0][0]}")
 
-    # Find all trips where the rider was over 80
-    redshift_hook.run("""
+def log_youngest():
+    redshift_hook = PostgresHook("redshift")
+    records = redshift_hook.get_records("""
+        SELECT birthyear FROM younger_riders ORDER BY birthyear DESC LIMIT 1
+    """)
+    if len(records) > 0 and len(records[0]) > 0:
+        logging.info(f"Youngest rider was born in {records[0][0]}")
+
+
+dag = DAG(
+    "lesson3.exercise2",
+    start_date=datetime.datetime.utcnow()
+)
+
+create_oldest_task = PostgresOperator(
+    task_id="create_oldest",
+    dag=dag,
+    sql="""
         BEGIN;
         DROP TABLE IF EXISTS older_riders;
         CREATE TABLE older_riders AS (
-            SELECT * FROM trips WHERE birthyear <= 1945
+            SELECT * FROM trips WHERE birthyear > 0 AND birthyear <= 1945
         );
         COMMIT;
-    """)
+    """,
+    postgres_conn_id="redshift"
+)
 
-    # Find all trips where the rider was under 18
-    redshift_hook.run("""
+log_oldest_task = PythonOperator(
+    task_id="log_oldest",
+    dag=dag,
+    python_callable=log_oldest
+)
+
+create_youngest_task = PostgresOperator(
+    task_id="create_youngest",
+    dag=dag,
+    sql="""
         BEGIN;
         DROP TABLE IF EXISTS younger_riders;
         CREATE TABLE younger_riders AS (
             SELECT * FROM trips WHERE birthyear > 2000
         );
         COMMIT;
-    """)
+    """,
+    postgres_conn_id="redshift"
+)
 
-    # Find out how often each bike is ridden
-    redshift_hook.run("""
+log_youngest_task = PythonOperator(
+    task_id="log_youngest",
+    dag=dag,
+    python_callable=log_youngest
+)
+
+lifetime_rides_task = PostgresOperator(
+    task_id="lifetime_rides",
+    dag=dag,
+    sql="""
         BEGIN;
         DROP TABLE IF EXISTS lifetime_rides;
         CREATE TABLE lifetime_rides AS (
@@ -40,10 +82,14 @@ def load_and_analyze(*args, **kwargs):
             GROUP BY bikeid
         );
         COMMIT;
-    """)
+    """,
+    postgres_conn_id="redshift"
+)
 
-    # Count the number of stations by city
-    redshift_hook.run("""
+city_station_count_task = PostgresOperator(
+    task_id="city_station_count",
+    dag=dag,
+    sql="""
         BEGIN;
         DROP TABLE IF EXISTS city_station_counts;
         CREATE TABLE city_station_counts AS(
@@ -52,18 +98,9 @@ def load_and_analyze(*args, **kwargs):
             GROUP BY city
         );
         COMMIT;
-    """)
-
-
-dag = DAG(
-    "lesson3.exercise2",
-    start_date=datetime.datetime.utcnow()
+    """,
+    postgres_conn_id="redshift"
 )
 
-load_and_analyze = PythonOperator(
-    task_id='load_and_analyze',
-    dag=dag,
-    python_callable=load_and_analyze,
-    provide_context=True,
-)
-
+create_oldest_task >> log_oldest_task
+create_youngest_task >> log_youngest_task
