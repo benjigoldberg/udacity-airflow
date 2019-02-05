@@ -65,7 +65,8 @@ copy_stations_task = PythonOperator(
 
 create_trips_table >> copy_trips_task
 # TODO: First, load the Airflow UI and run this DAG once.
-# TODO: Next, configure the task ordering for stations data as we have above for the trips data
-#       Then, run this DAG once more and inspect the run history.
+# TODO: Next, configure the task ordering for stations data to have the create run before
+#       the copy. Then, run this DAG once more and inspect the run history. to see the
+#       differences.
 
 

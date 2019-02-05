@@ -21,19 +21,8 @@ def load_trip_data_to_redshift(*args, **kwargs):
     redshift_hook.run(sql_stmt)
 
 
-def load_station_data_to_redshift(*args, **kwargs):
-    aws_hook = AwsHook("aws_credentials")
-    credentials = aws_hook.get_credentials()
-    redshift_hook = PostgresHook("redshift")
-    sql_stmt = sql.COPY_STATIONS_SQL.format(
-        credentials.access_key,
-        credentials.secret_key,
-    )
-    redshift_hook.run(sql_stmt)
-
-
 dag = DAG(
-    'lesson2.exercise1',
+    'lesson2.demo1',
     start_date=datetime.datetime.now()
 )
 
@@ -50,22 +39,16 @@ copy_trips_task = PythonOperator(
     python_callable=load_trip_data_to_redshift,
 )
 
-create_stations_table = PostgresOperator(
-    task_id="create_stations_table",
+location_traffic_task = PostgresOperator(
+    task_id="calculate_location_traffic",
     dag=dag,
     postgres_conn_id="redshift",
-    sql=sql.CREATE_STATIONS_TABLE_SQL,
-)
-
-copy_stations_task = PythonOperator(
-    task_id='load_stations_from_s3_to_redshift',
-    dag=dag,
-    python_callable=load_station_data_to_redshift,
+    sql=sql.LOCATION_TRAFFIC_SQL
 )
 
 create_trips_table >> copy_trips_task
 # TODO: First, load the Airflow UI and run this DAG once.
-# TODO: Next, configure the task ordering for stations data as we have above for the trips data
+# TODO: Next, configure the task ordering to add the location traffic task
 #       Then, run this DAG once more and inspect the run history.
 
 
