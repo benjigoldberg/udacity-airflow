@@ -71,7 +71,7 @@ def load_and_analyze(*args, **kwargs):
 
 
 dag = DAG(
-    "lesson3.exercise2",
+    "lesson3.demo2",
     start_date=datetime.datetime.utcnow()
 )
 

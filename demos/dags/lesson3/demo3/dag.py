@@ -4,14 +4,14 @@ from airflow import DAG
 from airflow.operators.postgres_operator import PostgresOperator
 from airflow.operators.subdag_operator import SubDagOperator
 
-from lesson3.exercise3.subdag import get_s3_to_redshift_dag
+from lesson3.demo3.subdag import get_s3_to_redshift_dag
 import sql
 
 
 start_date = datetime.datetime.utcnow()
 
 dag = DAG(
-    "lesson3.exercise3",
+    "lesson3.demo3",
     start_date=start_date,
 )
 
@@ -49,6 +49,25 @@ stations_subdag_task = SubDagOperator(
     dag=dag,
 )
 
+#
+# TODO: Once you have incorporated this operator into the SubDag
+#       Delete `check_trips` and `check_stations`
+#
+check_trips = HasRowsOperator(
+    task_id="check_trips_data",
+    dag=dag,
+    redshift_conn_id="redshift",
+    table="trips"
+)
+
+
+check_stations = HasRowsOperator(
+    task_id="check_stations_data",
+    dag=dag,
+    redshift_conn_id="redshift",
+    table="stations"
+)
+
 location_traffic_task = PostgresOperator(
     task_id="calculate_location_traffic",
     dag=dag,
@@ -56,5 +75,10 @@ location_traffic_task = PostgresOperator(
     sql=sql.LOCATION_TRAFFIC_SQL
 )
 
-trips_subdag_task >> location_traffic_task
-stations_subdag_task >> location_traffic_task
+#
+# TODO: Once you have removed the checks from above, reorder the tasks appropriately
+#
+trips_subdag_task >> check_stations
+stations_subdag_task >> check_trips
+check_stations >> location_traffic_task
+check_trips >> location_traffic_task

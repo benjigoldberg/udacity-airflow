@@ -27,31 +27,12 @@ def get_s3_to_redshift_dag(
         **kwargs
     )
 
-    create_task = PostgresOperator(
-        task_id=f"create_{table}_table",
-        dag=dag,
-        postgres_conn_id=redshift_conn_id,
-        sql=create_sql_stmt
-    )
+    #
+    # TODO: Move the create table code here
+    #
 
-    copy_task = S3ToRedshiftOperator(
-        task_id=f"load_{table}_from_s3_to_redshift",
-        dag=dag,
-        table=table,
-        redshift_conn_id=redshift_conn_id,
-        aws_credentials_id=aws_credentials_id,
-        s3_bucket=s3_bucket,
-        s3_key=s3_key
-    )
-
-    check_task = HasRowsOperator(
-        task_id=f"check_{table}_data",
-        dag=dag,
-        redshift_conn_id=redshift_conn_id,
-        table=table
-    )
-
-    create_task >> copy_task
-    copy_task >> check_task
+    #
+    # TODO: Move the S3ToRedshiftOperator code here
+    #
 
     return dag

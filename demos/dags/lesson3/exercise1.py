@@ -16,7 +16,7 @@ import sql
 
 
 dag = DAG(
-    "lesson3.exercise1",
+    "lesson3.demo1",
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
     end_date=datetime.datetime(2018, 12, 1, 0, 0, 0, 0),
     schedule_interval="@monthly",
