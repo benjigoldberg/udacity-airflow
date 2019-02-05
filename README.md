@@ -7,6 +7,7 @@ Before running these exercises you will need to [install Docker](https://www.doc
 
 ## Directory Layout
 
+* [`demos`](demos) contains the instructor demonstrations.
 * [`exercises`](exercises) contains the student exercises.
 * [`solutions`](solutions) contains the full exercise solutions
 
