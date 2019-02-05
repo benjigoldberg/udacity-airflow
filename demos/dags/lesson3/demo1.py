@@ -14,10 +14,34 @@ from airflow.operators import (
 
 import sql
 
+#
+# TODO: Replace these two load functions with the S3ToRedshiftOperator
+#
+def load_trip_data_to_redshift(*args, **kwargs):
+    aws_hook = AwsHook("aws_credentials")
+    credentials = aws_hook.get_credentials()
+    redshift_hook = PostgresHook("redshift")
+    execution_date = kwargs["execution_date"]
+    sql_stmt = sql.COPY_MONTHLY_TRIPS_SQL.format(
+        credentials.access_key,
+        credentials.secret_key,
+        year=execution_date.year,
+        month=execution_date.month
+    )
+    redshift_hook.run(sql_stmt)
 
-#
-# TODO: Replace the data quality checks with the HasRowsOperator
-#
+
+def load_station_data_to_redshift(*args, **kwargs):
+    aws_hook = AwsHook("aws_credentials")
+    credentials = aws_hook.get_credentials()
+    redshift_hook = PostgresHook("redshift")
+    sql_stmt = sql.COPY_STATIONS_SQL.format(
+        credentials.access_key,
+        credentials.secret_key,
+    )
+    redshift_hook.run(sql_stmt)
+
+
 def check_greater_than_zero(*args, **kwargs):
     table = kwargs["params"]["table"]
     redshift_hook = PostgresHook("redshift")
@@ -31,7 +55,7 @@ def check_greater_than_zero(*args, **kwargs):
 
 
 dag = DAG(
-    "lesson3.exercise1",
+    "lesson3.demo1",
     start_date=datetime.datetime(2018, 1, 1, 0, 0, 0, 0),
     end_date=datetime.datetime(2018, 12, 1, 0, 0, 0, 0),
     schedule_interval="@monthly",
@@ -45,19 +69,13 @@ create_trips_table = PostgresOperator(
     sql=sql.CREATE_TRIPS_TABLE_SQL
 )
 
-copy_trips_task = S3ToRedshiftOperator(
-    task_id="load_trips_from_s3_to_redshift",
+copy_trips_task = PythonOperator(
+    task_id='load_trips_from_s3_to_redshift',
     dag=dag,
-    table="trips",
-    redshift_conn_id="redshift",
-    aws_credentials_id="aws_credentials",
-    s3_bucket="udac-data-pipelines",
-    s3_key="divvy/partitioned/{execution_date.year}/{execution_date.month}/divvy_trips.csv"
+    python_callable=load_trip_data_to_redshift,
+    provide_context=True,
 )
 
-#
-# TODO: Replace this data quality check with the HasRowsOperator
-#
 check_trips = PythonOperator(
     task_id='check_trips_data',
     dag=dag,
@@ -75,19 +93,12 @@ create_stations_table = PostgresOperator(
     sql=sql.CREATE_STATIONS_TABLE_SQL,
 )
 
-copy_stations_task = S3ToRedshiftOperator(
-    task_id="load_stations_from_s3_to_redshift",
+copy_stations_task = PythonOperator(
+    task_id='load_stations_from_s3_to_redshift',
     dag=dag,
-    redshift_conn_id="redshift",
-    aws_credentials_id="aws_credentials",
-    s3_bucket="udac-data-pipelines",
-    s3_key="divvy/unpartitioned/divvy_stations_2017.csv",
-    table="stations"
+    python_callable=load_station_data_to_redshift,
 )
 
-#
-# TODO: Replace this data quality check with the HasRowsOperator
-#
 check_stations = PythonOperator(
     task_id='check_stations_data',
     dag=dag,

@@ -13,8 +13,7 @@ def hello_world():
 #
 dag = DAG(
         "lesson1.demo2",
-        start_date=datetime.datetime.now() - datetime.timedelta(days=60),
-        schedule_interval='@monthly')
+        start_date=datetime.datetime.now() - datetime.timedelta(days=30))
 
 task = PythonOperator(
         task_id="hello_world_task",

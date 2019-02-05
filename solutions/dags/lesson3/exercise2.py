@@ -16,6 +16,7 @@ def log_oldest():
     if len(records) > 0 and len(records[0]) > 0:
         logging.info(f"Oldest rider was born in {records[0][0]}")
 
+
 def log_youngest():
     redshift_hook = PostgresHook("redshift")
     records = redshift_hook.get_records("""
