@@ -11,7 +11,7 @@ from airflow.hooks.S3_hook import S3Hook
 # variable.
 # 1. Open your browser to localhost:8080 and open Admin->Variables
 # 2. Click "Create"
-# 3. Set "Key" equal to "s3_bucket" and set "Val" equal to "udac-data-pipelines"
+# 3. Set "Key" equal to "s3_bucket" and set "Val" equal to "udacity-dend"
 # 4. Click save
 # 5. Open Admin->Connections
 # 6. Click "Create"

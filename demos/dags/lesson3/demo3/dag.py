@@ -26,8 +26,8 @@ trips_subdag_task = SubDagOperator(
         "aws_credentials",
         "trips",
         sql.CREATE_TRIPS_TABLE_SQL,
-        s3_bucket="udac-data-pipelines",
-        s3_key="divvy/unpartitioned/divvy_trips_2018.csv",
+        s3_bucket="udacity-dend",
+        s3_key="data-pipelines/divvy/unpartitioned/divvy_trips_2018.csv",
         start_date=start_date,
     ),
     task_id=trips_task_id,
@@ -43,8 +43,8 @@ stations_subdag_task = SubDagOperator(
         "aws_credentials",
         "stations",
         sql.CREATE_STATIONS_TABLE_SQL,
-        s3_bucket="udac-data-pipelines",
-        s3_key="divvy/unpartitioned/divvy_stations_2017.csv",
+        s3_bucket="udacity-dend",
+        s3_key="data-pipelines/divvy/unpartitioned/divvy_stations_2017.csv",
         start_date=start_date,
     ),
     task_id=stations_task_id,
@@ -67,8 +67,8 @@ copy_trips_task = S3ToRedshiftOperator(
     table="trips",
     redshift_conn_id="redshift",
     aws_credentials_id="aws_credentials",
-    s3_bucket="udac-data-pipelines",
-    s3_key="divvy/unpartitioned/divvy_trips_2018.csv"
+    s3_bucket="udacity-dend",
+    s3_key="data-pipelines/divvy/unpartitioned/divvy_trips_2018.csv"
 )
 
 check_trips = HasRowsOperator(
@@ -90,8 +90,8 @@ copy_stations_task = S3ToRedshiftOperator(
     dag=dag,
     redshift_conn_id="redshift",
     aws_credentials_id="aws_credentials",
-    s3_bucket="udac-data-pipelines",
-    s3_key="divvy/unpartitioned/divvy_stations_2017.csv",
+    s3_bucket="udacity-dend",
+    s3_key="data-pipelines/divvy/unpartitioned/divvy_stations_2017.csv",
     table="stations"
 )
 
