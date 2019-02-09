@@ -1,4 +1,4 @@
-# udac-airflow
+# udacity-airflow
 
 This repository contains the exercises and solutions for the Udacity Data Pipelines course.
 
