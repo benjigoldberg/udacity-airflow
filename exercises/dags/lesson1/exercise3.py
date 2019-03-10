@@ -31,20 +31,17 @@ hello_world_task = PythonOperator(
     python_callable=hello_world,
     dag=dag)
 
-addition_task = PythonOperator(
-    task_id="addition",
-    python_callable=addition,
-    dag=dag)
+#
+# TODO: Define an addition task that calls the `addition` function above
+#
 
-subtraction_task = PythonOperator(
-    task_id="subtraction",
-    python_callable=subtraction,
-    dag=dag)
+#
+# TODO: Define a subtraction task that calls the `subtraction` function above
+#
 
-division_task = PythonOperator(
-    task_id="division",
-    python_callable=division,
-    dag=dag)
+#
+# TODO: Define a division task that calls the `division` function above
+#
 
 #
 # TODO: Configure the task dependencies such that the graph looks like the following:
