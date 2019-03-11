@@ -18,7 +18,6 @@ class FactsCalculatorOperator(BaseOperator):
     GROUP BY {groupby_column};
     """
 
-
     @apply_defaults
     def __init__(self,
                  redshift_conn_id="",

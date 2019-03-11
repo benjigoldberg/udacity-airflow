@@ -11,13 +11,12 @@ class FactsCalculatorOperator(BaseOperator):
     CREATE TABLE {destination_table} AS
     SELECT
         {groupby_column},
-        MAX() AS max_{fact_column},
-        MIN() AS min_{fact_column},
-        AVERAGE() AS average_{fact_column}
+        MAX({fact_column}) AS max_{fact_column},
+        MIN({fact_column}) AS min_{fact_column},
+        AVG({fact_column}) AS average_{fact_column}
     FROM {origin_table}
     GROUP BY {groupby_column};
     """
-
 
     @apply_defaults
     def __init__(self,
@@ -29,14 +28,17 @@ class FactsCalculatorOperator(BaseOperator):
                  *args, **kwargs):
 
         super(FactsCalculatorOperator, self).__init__(*args, **kwargs)
-        self.redshift_conn_id = redshift_conn_id
-        self.origin_table = origin_table
-        self.destination_table = destination_table
-        self.fact_column = fact_column
-        self.groupby_column = groupby_column
+        #
+        # TODO: Set attributes from __init__ instantiation arguments
+        #
 
     def execute(self, context):
-        redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+        #
+        # TODO: Fetch the redshift hook
+        #
 
-        self.log.info("Clearing data from destination Redshift table")
-        redshift.run("DELETE FROM {}".format(self.table))
+        #
+        # TODO: Format the `facts_sql_template` and run the query against redshift
+        #
+
+        pass

@@ -6,6 +6,7 @@ import operators
 class UdacityPlugin(AirflowPlugin):
     name = "udacity_plugin"
     operators = [
+        operators.FactsCalculatorOperator,
         operators.HasRowsOperator,
         operators.S3ToRedshiftOperator
     ]
